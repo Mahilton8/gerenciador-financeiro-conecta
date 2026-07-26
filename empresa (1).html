@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conecta Financeiro — Painel da Empresa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0F1B33; --navy-2:#182A4D; --gold:#C9A544; --gold-light:#E4C874; --gold-deep:#9C7E2E;
+    --bg:#F6F5F1; --card:#FFFFFF; --ink:#1B2A4A; --muted:#6B7280;
+    --ok:#2F7D5E; --ok-bg:#E6F2EC; --danger:#B3462C; --danger-bg:#F5E6E1; --line:#E7E3D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .hidden{display:none !important;}
+  button{cursor:pointer;border:none;font-family:'Inter',sans-serif;font-weight:600;border-radius:3px;transition:transform .1s, box-shadow .15s;}
+
+  /* LOGIN */
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 20% 20%, rgba(201,165,68,0.10), transparent 45%), linear-gradient(180deg,var(--navy) 0%,#0A1428 100%);padding:24px;}
+  .login-card{width:100%;max-width:380px;background:var(--card);border-radius:4px;padding:40px 36px;box-shadow:0 30px 60px rgba(0,0,0,0.35);border-top:3px solid var(--gold);}
+  .brand-mark{width:44px;height:44px;border-radius:50%;background:conic-gradient(from 220deg, var(--gold-light), var(--gold), var(--gold-deep), var(--gold-light));margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;color:var(--navy);font-size:18px;}
+  .login-card h1{font-size:22px;text-align:center;color:var(--navy);}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;}
+  .login-card .eyebrow{text-align:center;margin-bottom:6px;}
+  .login-card p.sub{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 26px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;letter-spacing:.02em;}
+  input,select{width:100%;padding:12px 14px;border:1px solid #DDD8C8;border-radius:3px;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:16px;background:#FCFBF8;}
+  input:focus,select:focus{outline:none;border-color:var(--gold);background:#fff;}
+  .btn-primary{width:100%;padding:13px;background:var(--navy);color:var(--gold-light);font-size:14px;letter-spacing:.03em;}
+  .btn-primary:hover{box-shadow:0 8px 20px rgba(15,27,51,0.25);}
+  .error-msg{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:16px;}
+
+  /* SHELL */
+  header.topbar{background:var(--navy);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gold);flex-wrap:wrap;gap:12px;}
+  header.topbar .title{display:flex;align-items:center;gap:12px;}
+  header.topbar .mark{width:28px;height:28px;border-radius:50%;background:conic-gradient(from 220deg, var(--gold-light), var(--gold), var(--gold-deep), var(--gold-light));}
+  header.topbar h1{font-size:16px;color:#fff;}
+  header.topbar .eyebrow{color:var(--gold-light);font-size:10px;}
+  .logout-btn{background:transparent;color:var(--gold-light);border:1px solid rgba(228,200,116,0.4);padding:8px 16px;font-size:12px;border-radius:3px;}
+  .logout-btn:hover{background:rgba(228,200,116,0.1);}
+
+  nav.tabs{display:flex;gap:4px;background:var(--navy-2);padding:0 28px;overflow-x:auto;}
+  nav.tabs button{background:none;color:rgba(255,255,255,0.6);padding:14px 18px;font-size:13px;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav.tabs button.active{color:#fff;border-bottom-color:var(--gold);}
+
+  main{max-width:1100px;margin:0 auto;padding:32px 24px 80px;}
+  .panel-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:22px;}
+  .panel-head h2{font-size:24px;color:var(--navy);}
+  .btn-gold{background:var(--gold);color:var(--navy);padding:11px 20px;font-size:13px;border-radius:3px;}
+  .btn-gold:hover{background:var(--gold-light);}
+  .card{background:var(--card);border-radius:4px;border:1px solid var(--line);}
+
+  /* DASHBOARD */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px 22px;border-top:3px solid var(--gold);}
+  .stat-card .eyebrow{margin-bottom:8px;}
+  .stat-card .value{font-family:'Fraunces',serif;font-size:26px;color:var(--navy);}
+  .stat-card.entrada{border-top-color:var(--ok);}
+  .stat-card.saida{border-top-color:var(--danger);}
+  .stat-card.entrada .value{color:var(--ok);}
+  .stat-card.saida .value{color:var(--danger);}
+  .chart-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+  @media (max-width:800px){.chart-grid{grid-template-columns:1fr;}}
+  .chart-card{padding:22px;}
+  .chart-card h3{font-size:15px;color:var(--navy);margin-bottom:16px;}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;}
+  thead th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:14px 18px;border-bottom:1px solid var(--line);}
+  tbody td{padding:14px 18px;font-size:13.5px;border-bottom:1px solid #F0EEE6;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FCFBF7;}
+  .valor{font-weight:600;font-variant-numeric:tabular-nums;}
+  .valor.entrada{color:var(--ok);}
+  .valor.saida{color:var(--danger);}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge-pendente{background:#FBF0DC;color:var(--gold-deep);}
+  .badge-baixado{background:var(--ok-bg);color:var(--ok);}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .icon-btn{background:#F6F5F1;color:var(--navy);padding:6px 10px;font-size:11.5px;border-radius:3px;border:1px solid var(--line);}
+  .icon-btn:hover{background:#EFEBDE;}
+  .icon-btn.danger{color:var(--danger);}
+  .icon-btn.ok{color:var(--ok);}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--muted);}
+  .empty-state h3{color:var(--navy);font-size:18px;margin-bottom:8px;}
+  .loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+  .filters select, .filters input{margin-bottom:0;width:auto;min-width:140px;}
+
+  /* MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(15,27,51,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal{background:#fff;border-radius:4px;padding:32px;max-width:440px;width:100%;border-top:3px solid var(--gold);max-height:90vh;overflow-y:auto;}
+  .modal h3{font-size:19px;color:var(--navy);margin-bottom:20px;}
+  .modal-actions{display:flex;gap:10px;margin-top:8px;}
+  .btn-ghost{background:transparent;color:var(--muted);padding:11px 18px;font-size:13px;border:1px solid var(--line);border-radius:3px;}
+  .btn-ghost:hover{background:#F6F5F1;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  @media (max-width:640px){
+    main{padding:22px 14px 60px;}
+    thead{display:none;}
+    tbody tr{display:block;border-bottom:8px solid var(--bg);}
+    tbody td{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+    tbody td::before{content:attr(data-label);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+    .field-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand-mark">C</div>
+    <div class="eyebrow">Grupo Conecta</div>
+    <h1>Gestor Financeiro</h1>
+    <p class="sub">Acesso da empresa</p>
+    <form id="loginForm">
+      <label for="empCodigo">Login</label>
+      <input type="text" id="empCodigo" required>
+      <label for="empSenha">Senha</label>
+      <input type="password" id="empSenha" required>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <div class="error-msg" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="hidden">
+  <header class="topbar">
+    <div class="title">
+      <div class="mark"></div>
+      <div>
+        <div class="eyebrow" id="empresaEyebrow">Grupo Conecta</div>
+        <h1 id="empresaNomeHeader">Painel Financeiro</h1>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" data-tab="lancamentos" onclick="switchTab('lancamentos')">Lançamentos</button>
+    <button class="tab-btn" data-tab="fluxo" onclick="switchTab('fluxo')">Fluxo de Caixa</button>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Mês atual</div>
+          <h2 id="dashMesLabel">Visão geral</h2>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card entrada">
+          <div class="eyebrow">Entradas</div>
+          <div class="value" id="statEntradas">R$ 0,00</div>
+        </div>
+        <div class="stat-card saida">
+          <div class="eyebrow">Saídas</div>
+          <div class="value" id="statSaidas">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="eyebrow">Saldo do mês</div>
+          <div class="value" id="statSaldo">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="eyebrow">Pendentes de baixa</div>
+          <div class="value" id="statPendentes">0</div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="card chart-card">
+          <h3>Entradas x Saídas — últimos 6 meses</h3>
+          <canvas id="chartEvolucao" height="140"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Saídas por categoria (mês atual)</h3>
+          <canvas id="chartCategorias" height="140"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- LANÇAMENTOS -->
+    <section id="tab-lancamentos" class="hidden">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Movimentações</div>
+          <h2>Lançamentos</h2>
+        </div>
+        <button class="btn-gold" onclick="openLancamentoModal()">+ Novo lançamento</button>
+      </div>
+      <div class="filters">
+        <select id="filtroTipo" onchange="renderLancamentos()">
+          <option value="">Todos os tipos</option>
+          <option value="Entrada">Entrada</option>
+          <option value="Saída">Saída</option>
+        </select>
+        <select id="filtroStatus" onchange="renderLancamentos()">
+          <option value="">Todos os status</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Baixado">Baixado</option>
+        </select>
+      </div>
+      <div class="card">
+        <div id="lancTableWrap"><div class="loading">Carregando lançamentos…</div></div>
+      </div>
+    </section>
+
+    <!-- FLUXO DE CAIXA -->
+    <section id="tab-fluxo" class="hidden">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Consolidado mensal</div>
+          <h2>Fluxo de Caixa</h2>
+        </div>
+      </div>
+      <div class="card">
+        <div id="fluxoTableWrap"><div class="loading">Carregando…</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL: Lançamento -->
+<div id="lancModal" class="overlay hidden">
+  <div class="modal">
+    <h3 id="lancModalTitle">Novo lançamento</h3>
+    <form id="lancForm">
+      <input type="hidden" id="lancId">
+      <div class="field-row">
+        <div>
+          <label for="lancData">Data</label>
+          <input type="date" id="lancData" required>
+        </div>
+        <div>
+          <label for="lancTipo">Tipo</label>
+          <select id="lancTipo" required>
+            <option value="Entrada">Entrada</option>
+            <option value="Saída">Saída</option>
+          </select>
+        </div>
+      </div>
+      <label for="lancCategoria">Categoria</label>
+      <input type="text" id="lancCategoria" placeholder="ex: Vendas, Fornecedores, Folha…" required>
+      <label for="lancDescricao">Descrição</label>
+      <input type="text" id="lancDescricao" placeholder="opcional">
+      <label for="lancValor">Valor (R$)</label>
+      <input type="number" id="lancValor" step="0.01" min="0" required>
+      <div class="error-msg" id="lancError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" onclick="closeModal('lancModal')">Cancelar</button>
+        <button type="submit" class="btn-gold">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ⚠️ Substitua pela URL do seu Web App do Apps Script (mesma implantação usada no admin.html)
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbztuSAR7PNTr8pmT_UuyACADr0Jp6mBFFEEm_IBDVOGaJQVAThbqTltAp9TRXPvSGTD/exec';
+
+  let sessaoEmpresa = null; // { codigo, nomeEmpresa }
+  let lancamentos = [];
+
+  async function api(action, params = {}) {
+    const url = new URL(GAS_URL);
+    url.searchParams.set('action', action);
+    Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+    const res = await fetch(url);
+    return res.json();
+  }
+
+  // ---- LOGIN ----
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const codigo = document.getElementById('empCodigo').value.trim();
+    const senha = document.getElementById('empSenha').value;
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = '';
+    try {
+      const r = await api('empresaLogin', { codigo, senha });
+      if (r.success) {
+        sessaoEmpresa = { codigo: r.codigo, nomeEmpresa: r.nomeEmpresa };
+        sessionStorage.setItem('conecta_empresa_sessao', JSON.stringify(sessaoEmpresa));
+        showApp();
+      } else {
+        errEl.textContent = r.error || 'Login ou senha inválidos';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão. Verifique a URL do backend.';
+    }
+  });
+
+  const savedSessao = sessionStorage.getItem('conecta_empresa_sessao');
+  if (savedSessao) {
+    sessaoEmpresa = JSON.parse(savedSessao);
+    showApp();
+  }
+
+  function showApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('empresaNomeHeader').textContent = sessaoEmpresa.nomeEmpresa;
+    loadLancamentos();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('conecta_empresa_sessao');
+    sessaoEmpresa = null;
+    document.getElementById('appScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  // ---- TABS ----
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    ['dashboard', 'lancamentos', 'fluxo'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+    });
+    if (tab === 'fluxo') renderFluxoCaixa();
+  }
+
+  // ---- CARREGAR LANÇAMENTOS ----
+  async function loadLancamentos() {
+    try {
+      const r = await api('listLancamentos', { empresa: sessaoEmpresa.codigo });
+      lancamentos = r.data || [];
+      renderDashboard();
+      renderLancamentos();
+    } catch (err) {
+      document.getElementById('lancTableWrap').innerHTML = '<div class="loading">Erro ao carregar dados.</div>';
+    }
+  }
+
+  function fmtMoeda(v) {
+    return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function mesAtualKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function labelMesAtual() {
+    const d = new Date();
+    return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  }
+
+  // ---- DASHBOARD ----
+  let chartEvolucao, chartCategorias;
+
+  function renderDashboard() {
+    document.getElementById('dashMesLabel').textContent = 'Visão geral — ' + labelMesAtual();
+
+    const mesAtual = mesAtualKey();
+    const doMes = lancamentos.filter(l => (l.data || '').slice(0, 7) === mesAtual);
+    const entradas = doMes.filter(l => l.tipo === 'Entrada').reduce((s, l) => s + Number(l.valor), 0);
+    const saidas = doMes.filter(l => l.tipo === 'Saída').reduce((s, l) => s + Number(l.valor), 0);
+    const pendentes = lancamentos.filter(l => l.statusBaixa !== 'Baixado').length;
+
+    document.getElementById('statEntradas').textContent = fmtMoeda(entradas);
+    document.getElementById('statSaidas').textContent = fmtMoeda(saidas);
+    document.getElementById('statSaldo').textContent = fmtMoeda(entradas - saidas);
+    document.getElementById('statPendentes').textContent = pendentes;
+
+    // Evolução 6 meses
+    const meses = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      meses.push({ key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), label: d.toLocaleDateString('pt-BR', { month: 'short' }) });
+    }
+    const entradasSerie = meses.map(m => lancamentos.filter(l => (l.data || '').slice(0, 7) === m.key && l.tipo === 'Entrada').reduce((s, l) => s + Number(l.valor), 0));
+    const saidasSerie = meses.map(m => lancamentos.filter(l => (l.data || '').slice(0, 7) === m.key && l.tipo === 'Saída').reduce((s, l) => s + Number(l.valor), 0));
+
+    const ctx1 = document.getElementById('chartEvolucao').getContext('2d');
+    if (chartEvolucao) chartEvolucao.destroy();
+    chartEvolucao = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: meses.map(m => m.label),
+        datasets: [
+          { label: 'Entradas', data: entradasSerie, backgroundColor: '#2F7D5E', borderRadius: 3 },
+          { label: 'Saídas', data: saidasSerie, backgroundColor: '#B3462C', borderRadius: 3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' }, usePointStyle: true } } },
+        scales: {
+          y: { ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') }, grid: { color: '#F0EEE6' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Categorias (saídas do mês)
+    const catMap = {};
+    doMes.filter(l => l.tipo === 'Saída').forEach(l => {
+      const cat = l.categoria || 'Outros';
+      catMap[cat] = (catMap[cat] || 0) + Number(l.valor);
+    });
+    const catLabels = Object.keys(catMap);
+    const catValues = Object.values(catMap);
+    const palette = ['#0F1B33', '#C9A544', '#9C7E2E', '#B3462C', '#6B7280', '#182A4D', '#E4C874'];
+
+    const ctx2 = document.getElementById('chartCategorias').getContext('2d');
+    if (chartCategorias) chartCategorias.destroy();
+    chartCategorias = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: catLabels.length ? catLabels : ['Sem saídas no mês'],
+        datasets: [{ data: catValues.length ? catValues : [1], backgroundColor: catLabels.length ? palette : ['#E7E3D8'] }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' }, boxWidth: 12, usePointStyle: true } } }
+      }
+    });
+  }
+
+  // ---- LANÇAMENTOS: LISTA ----
+  function renderLancamentos() {
+    const wrap = document.getElementById('lancTableWrap');
+    const filtroTipo = document.getElementById('filtroTipo').value;
+    const filtroStatus = document.getElementById('filtroStatus').value;
+
+    let filtrados = [...lancamentos].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+    if (filtroTipo) filtrados = filtrados.filter(l => l.tipo === filtroTipo);
+    if (filtroStatus) filtrados = filtrados.filter(l => l.statusBaixa === filtroStatus);
+
+    if (!filtrados.length) {
+      wrap.innerHTML = `<div class="empty-state"><h3>Nenhum lançamento encontrado</h3><p>Cadastre o primeiro lançamento financeiro.</p></div>`;
+      return;
+    }
+
+    const rows = filtrados.map(l => {
+      const baixado = l.statusBaixa === 'Baixado';
+      return `<tr>
+        <td data-label="Data">${fmtData(l.data)}</td>
+        <td data-label="Tipo">${l.tipo}</td>
+        <td data-label="Categoria">${escapeHtml(l.categoria || '—')}</td>
+        <td data-label="Descrição">${escapeHtml(l.descricao || '—')}</td>
+        <td data-label="Valor"><span class="valor ${l.tipo === 'Entrada' ? 'entrada' : 'saida'}">${fmtMoeda(l.valor)}</span></td>
+        <td data-label="Status"><span class="badge ${baixado ? 'badge-baixado' : 'badge-pendente'}">${baixado ? 'Baixado' : 'Pendente'}</span></td>
+        <td data-label="Ações">
+          <div class="row-actions">
+            <button class="icon-btn" onclick='openLancamentoModal(${JSON.stringify(l)})'>Editar</button>
+            ${baixado
+              ? `<button class="icon-btn" onclick="estornar('${l.id}')">Estornar</button>`
+              : `<button class="icon-btn ok" onclick="baixar('${l.id}')">Dar baixa</button>`}
+            <button class="icon-btn danger" onclick="excluirLancamento('${l.id}')">Excluir</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  function fmtData(iso) {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return d && m && y ? `${d}/${m}/${y}` : iso;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---- MODAL LANÇAMENTO ----
+  function openLancamentoModal(lanc) {
+    document.getElementById('lancForm').reset();
+    document.getElementById('lancError').textContent = '';
+    if (lanc) {
+      document.getElementById('lancModalTitle').textContent = 'Editar lançamento';
+      document.getElementById('lancId').value = lanc.id;
+      document.getElementById('lancData').value = lanc.data;
+      document.getElementById('lancTipo').value = lanc.tipo;
+      document.getElementById('lancCategoria').value = lanc.categoria || '';
+      document.getElementById('lancDescricao').value = lanc.descricao || '';
+      document.getElementById('lancValor').value = lanc.valor;
+    } else {
+      document.getElementById('lancModalTitle').textContent = 'Novo lançamento';
+      document.getElementById('lancId').value = '';
+      document.getElementById('lancData').value = new Date().toISOString().slice(0, 10);
+    }
+    document.getElementById('lancModal').classList.remove('hidden');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+
+  document.getElementById('lancForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('lancId').value;
+    const payload = {
+      empresa: sessaoEmpresa.codigo,
+      data: document.getElementById('lancData').value,
+      tipo: document.getElementById('lancTipo').value,
+      categoria: document.getElementById('lancCategoria').value.trim(),
+      descricao: document.getElementById('lancDescricao').value.trim(),
+      valor: document.getElementById('lancValor').value
+    };
+    const errEl = document.getElementById('lancError');
+    errEl.textContent = '';
+    try {
+      const r = id
+        ? await api('updateLancamento', { ...payload, id })
+        : await api('createLancamento', payload);
+      if (r.success) {
+        closeModal('lancModal');
+        loadLancamentos();
+      } else {
+        errEl.textContent = r.error || 'Erro ao salvar lançamento';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão.';
+    }
+  });
+
+  // ---- AÇÕES ----
+  async function baixar(id) {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const r = await api('baixarLancamento', { empresa: sessaoEmpresa.codigo, id, dataBaixa: hoje });
+    if (r.success) loadLancamentos();
+  }
+
+  async function estornar(id) {
+    const r = await api('estornarBaixa', { empresa: sessaoEmpresa.codigo, id });
+    if (r.success) loadLancamentos();
+  }
+
+  async function excluirLancamento(id) {
+    if (!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.')) return;
+    const r = await api('deleteLancamento', { empresa: sessaoEmpresa.codigo, id });
+    if (r.success) loadLancamentos();
+  }
+
+  // ---- FLUXO DE CAIXA (consolidado mensal) ----
+  function renderFluxoCaixa() {
+    const wrap = document.getElementById('fluxoTableWrap');
+    if (!lancamentos.length) {
+      wrap.innerHTML = `<div class="empty-state"><h3>Sem dados ainda</h3><p>O fluxo de caixa é montado a partir dos lançamentos cadastrados.</p></div>`;
+      return;
+    }
+    const porMes = {};
+    lancamentos.forEach(l => {
+      const key = (l.data || '').slice(0, 7);
+      if (!key) return;
+      if (!porMes[key]) porMes[key] = { entradas: 0, saidas: 0 };
+      if (l.tipo === 'Entrada') porMes[key].entradas += Number(l.valor);
+      else porMes[key].saidas += Number(l.valor);
+    });
+    const chavesOrdenadas = Object.keys(porMes).sort().reverse();
+    let saldoAcumulado = 0;
+    const acumulados = {};
+    Object.keys(porMes).sort().forEach(k => {
+      saldoAcumulado += porMes[k].entradas - porMes[k].saidas;
+      acumulados[k] = saldoAcumulado;
+    });
+
+    const rows = chavesOrdenadas.map(key => {
+      const [ano, mes] = key.split('-');
+      const label = new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const { entradas, saidas } = porMes[key];
+      const saldoMes = entradas - saidas;
+      return `<tr>
+        <td data-label="Mês" style="text-transform:capitalize;">${label}</td>
+        <td data-label="Entradas"><span class="valor entrada">${fmtMoeda(entradas)}</span></td>
+        <td data-label="Saídas"><span class="valor saida">${fmtMoeda(saidas)}</span></td>
+        <td data-label="Saldo do mês"><span class="valor ${saldoMes >= 0 ? 'entrada' : 'saida'}">${fmtMoeda(saldoMes)}</span></td>
+        <td data-label="Saldo acumulado"><span class="valor ${acumulados[key] >= 0 ? 'entrada' : 'saida'}">${fmtMoeda(acumulados[key])}</span></td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Saldo do mês</th><th>Saldo acumulado</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+</script>
+</body>
+</html>

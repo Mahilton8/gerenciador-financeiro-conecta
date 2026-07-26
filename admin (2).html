@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conecta Financeiro — Painel Administrativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F1B33;
+    --navy-2:#182A4D;
+    --gold:#C9A544;
+    --gold-light:#E4C874;
+    --gold-deep:#9C7E2E;
+    --bg:#F6F5F1;
+    --card:#FFFFFF;
+    --ink:#1B2A4A;
+    --muted:#6B7280;
+    --ok:#2F7D5E;
+    --danger:#B3462C;
+    --line:#E7E3D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .hidden{display:none !important;}
+
+  /* ---- LOGIN ---- */
+  #loginScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(201,165,68,0.10), transparent 45%),
+      linear-gradient(180deg,var(--navy) 0%,#0A1428 100%);
+    padding:24px;
+  }
+  .login-card{
+    width:100%;max-width:380px;background:var(--card);border-radius:4px;
+    padding:40px 36px;box-shadow:0 30px 60px rgba(0,0,0,0.35);
+    border-top:3px solid var(--gold);
+  }
+  .brand-mark{
+    width:44px;height:44px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--gold-light), var(--gold), var(--gold-deep), var(--gold-light));
+    margin:0 auto 18px;display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;color:var(--navy);font-size:18px;
+  }
+  .login-card h1{font-size:22px;text-align:center;color:var(--navy);}
+  .login-card .eyebrow{
+    text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold-deep);font-weight:600;margin-bottom:6px;
+  }
+  .login-card p.sub{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 26px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;letter-spacing:.02em;}
+  input{
+    width:100%;padding:12px 14px;border:1px solid #DDD8C8;border-radius:3px;
+    font-family:'Inter',sans-serif;font-size:14px;margin-bottom:16px;background:#FCFBF8;
+    transition:border-color .15s;
+  }
+  input:focus{outline:none;border-color:var(--gold);background:#fff;}
+  button{
+    cursor:pointer;border:none;font-family:'Inter',sans-serif;font-weight:600;
+    border-radius:3px;transition:transform .1s, box-shadow .15s;
+  }
+  .btn-primary{
+    width:100%;padding:13px;background:var(--navy);color:var(--gold-light);
+    font-size:14px;letter-spacing:.03em;
+  }
+  .btn-primary:hover{box-shadow:0 8px 20px rgba(15,27,51,0.25);}
+  .btn-primary:active{transform:translateY(1px);}
+  .error-msg{
+    color:var(--danger);font-size:13px;text-align:center;margin-top:14px;min-height:16px;
+  }
+
+  /* ---- APP SHELL ---- */
+  #appScreen{min-height:100vh;}
+  header.topbar{
+    background:var(--navy);color:#fff;padding:18px 32px;display:flex;
+    align-items:center;justify-content:space-between;
+    border-bottom:3px solid var(--gold);
+  }
+  header.topbar .title{display:flex;align-items:center;gap:12px;}
+  header.topbar .title .mark{
+    width:30px;height:30px;border-radius:50%;
+    background:conic-gradient(from 220deg, var(--gold-light), var(--gold), var(--gold-deep), var(--gold-light));
+  }
+  header.topbar h1{font-size:18px;color:#fff;}
+  header.topbar .eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-light);}
+  .logout-btn{background:transparent;color:var(--gold-light);border:1px solid rgba(228,200,116,0.4);padding:8px 16px;font-size:12px;border-radius:3px;}
+  .logout-btn:hover{background:rgba(228,200,116,0.1);}
+
+  main{max-width:1080px;margin:0 auto;padding:36px 24px 80px;}
+
+  .panel-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;}
+  .panel-head h2{font-size:26px;color:var(--navy);}
+  .panel-head .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin-bottom:6px;}
+
+  .btn-gold{background:var(--gold);color:var(--navy);padding:11px 22px;font-size:13px;border-radius:3px;}
+  .btn-gold:hover{background:var(--gold-light);}
+
+  .card{background:var(--card);border-radius:4px;border:1px solid var(--line);}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;padding:14px 20px;border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:16px 20px;font-size:14px;border-bottom:1px solid #F0EEE6;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FCFBF7;}
+  .empresa-nome{font-weight:600;color:var(--navy);}
+  .empresa-codigo{font-family:monospace;font-size:12.5px;color:var(--muted);}
+
+  .badge{
+    display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;
+    letter-spacing:.02em;
+  }
+  .badge-ativo{background:#E6F2EC;color:var(--ok);}
+  .badge-inativo{background:#F5E6E1;color:var(--danger);}
+
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .icon-btn{
+    background:#F6F5F1;color:var(--navy);padding:7px 12px;font-size:12px;border-radius:3px;
+    border:1px solid var(--line);
+  }
+  .icon-btn:hover{background:#EFEBDE;}
+  .icon-btn.danger{color:var(--danger);}
+  .icon-btn.ok{color:var(--ok);}
+
+  .empty-state{padding:60px 20px;text-align:center;color:var(--muted);}
+  .empty-state h3{color:var(--navy);font-size:18px;margin-bottom:8px;}
+
+  /* ---- Modal ---- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(15,27,51,0.5);display:flex;
+    align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal{
+    background:#fff;border-radius:4px;padding:32px;max-width:420px;width:100%;
+    border-top:3px solid var(--gold);
+  }
+  .modal h3{font-size:19px;color:var(--navy);margin-bottom:20px;}
+  .modal-actions{display:flex;gap:10px;margin-top:8px;}
+  .btn-ghost{background:transparent;color:var(--muted);padding:11px 18px;font-size:13px;border:1px solid var(--line);border-radius:3px;}
+  .btn-ghost:hover{background:#F6F5F1;}
+  .modal .error-msg{text-align:left;}
+
+  .loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+
+  @media (max-width:640px){
+    header.topbar{padding:14px 18px;}
+    main{padding:24px 14px 60px;}
+    thead{display:none;}
+    tbody tr{display:block;border-bottom:8px solid var(--bg);}
+    tbody td{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+    tbody td::before{content:attr(data-label);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand-mark">C</div>
+    <div class="eyebrow">Grupo Conecta</div>
+    <h1>Gestor Financeiro</h1>
+    <p class="sub">Painel administrativo</p>
+    <form id="loginForm">
+      <label for="adminUser">Usuário</label>
+      <input type="text" id="adminUser" autocomplete="username" required>
+      <label for="adminPass">Senha</label>
+      <input type="password" id="adminPass" autocomplete="current-password" required>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <div class="error-msg" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="hidden">
+  <header class="topbar">
+    <div class="title">
+      <div class="mark"></div>
+      <div>
+        <div class="eyebrow">Grupo Conecta</div>
+        <h1>Gestor Financeiro · Administração</h1>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </header>
+
+  <main>
+    <div class="panel-head">
+      <div>
+        <div class="eyebrow">Empresas cadastradas</div>
+        <h2>Contas de acesso</h2>
+      </div>
+      <button class="btn-gold" onclick="openCreateModal()">+ Nova empresa</button>
+    </div>
+
+    <div class="card">
+      <div id="tableWrap">
+        <div class="loading">Carregando empresas…</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: Nova empresa -->
+<div id="createModal" class="overlay hidden">
+  <div class="modal">
+    <h3>Nova empresa</h3>
+    <form id="createForm">
+      <label for="novoNome">Nome da empresa</label>
+      <input type="text" id="novoNome" required>
+      <label for="novoCodigo">Código de login</label>
+      <input type="text" id="novoCodigo" placeholder="ex: empresa-xyz" required>
+      <label for="novaSenha">Senha</label>
+      <input type="text" id="novaSenha" required>
+      <div class="error-msg" id="createError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" onclick="closeModal('createModal')">Cancelar</button>
+        <button type="submit" class="btn-gold">Cadastrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Alterar senha -->
+<div id="senhaModal" class="overlay hidden">
+  <div class="modal">
+    <h3>Alterar senha</h3>
+    <form id="senhaForm">
+      <input type="hidden" id="senhaCodigo">
+      <label id="senhaEmpresaLabel" style="color:var(--muted);font-weight:400;margin-bottom:16px;"></label>
+      <label for="senhaNova">Nova senha</label>
+      <input type="text" id="senhaNova" required>
+      <div class="error-msg" id="senhaError"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" onclick="closeModal('senhaModal')">Cancelar</button>
+        <button type="submit" class="btn-gold">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ⚠️ Substitua pela URL do seu Web App do Apps Script (Implantar > Nova implantação > App da Web)
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbztuSAR7PNTr8pmT_UuyACADr0Jp6mBFFEEm_IBDVOGaJQVAThbqTltAp9TRXPvSGTD/exec';
+
+  let empresas = [];
+
+  async function api(action, params = {}) {
+    const url = new URL(GAS_URL);
+    url.searchParams.set('action', action);
+    Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+    const res = await fetch(url);
+    return res.json();
+  }
+
+  // ---- LOGIN ----
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const usuario = document.getElementById('adminUser').value.trim();
+    const senha = document.getElementById('adminPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = '';
+    try {
+      const r = await api('adminLogin', { usuario, senha });
+      if (r.success) {
+        sessionStorage.setItem('conecta_admin_logged', '1');
+        showApp();
+      } else {
+        errEl.textContent = r.error || 'Usuário ou senha inválidos';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão. Verifique a URL do backend.';
+    }
+  });
+
+  function showApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    loadEmpresas();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('conecta_admin_logged');
+    document.getElementById('appScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  if (sessionStorage.getItem('conecta_admin_logged') === '1') {
+    showApp();
+  }
+
+  // ---- LISTAGEM ----
+  async function loadEmpresas() {
+    const wrap = document.getElementById('tableWrap');
+    wrap.innerHTML = '<div class="loading">Carregando empresas…</div>';
+    try {
+      const r = await api('listEmpresas');
+      empresas = r.data || [];
+      renderTable();
+    } catch (err) {
+      wrap.innerHTML = '<div class="loading">Erro ao carregar. Verifique a conexão com o backend.</div>';
+    }
+  }
+
+  function renderTable() {
+    const wrap = document.getElementById('tableWrap');
+    if (!empresas.length) {
+      wrap.innerHTML = `<div class="empty-state">
+        <h3>Nenhuma empresa cadastrada</h3>
+        <p>Cadastre a primeira empresa para gerar o acesso ao painel financeiro.</p>
+      </div>`;
+      return;
+    }
+    const rows = empresas.map(emp => {
+      const ativo = String(emp.status) === 'Ativo';
+      return `<tr>
+        <td data-label="Empresa"><div class="empresa-nome">${escapeHtml(emp.nomeEmpresa)}</div></td>
+        <td data-label="Login"><span class="empresa-codigo">${escapeHtml(emp.codigo)}</span></td>
+        <td data-label="Status"><span class="badge ${ativo ? 'badge-ativo' : 'badge-inativo'}">${ativo ? 'Ativo' : 'Inativo'}</span></td>
+        <td data-label="Ações">
+          <div class="row-actions">
+            <button class="icon-btn" onclick="openSenhaModal('${emp.codigo}','${escapeHtml(emp.nomeEmpresa)}')">Alterar senha</button>
+            ${ativo
+              ? `<button class="icon-btn danger" onclick="toggleStatus('${emp.codigo}','Inativo')">Inativar</button>`
+              : `<button class="icon-btn ok" onclick="toggleStatus('${emp.codigo}','Ativo')">Ativar</button>`}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Empresa</th><th>Login</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---- CRIAR EMPRESA ----
+  function openCreateModal() {
+    document.getElementById('createForm').reset();
+    document.getElementById('createError').textContent = '';
+    document.getElementById('createModal').classList.remove('hidden');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+
+  document.getElementById('createForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nomeEmpresa = document.getElementById('novoNome').value.trim();
+    const codigo = document.getElementById('novoCodigo').value.trim();
+    const senha = document.getElementById('novaSenha').value;
+    const errEl = document.getElementById('createError');
+    errEl.textContent = '';
+    try {
+      const r = await api('createEmpresa', { nomeEmpresa, codigo, senha });
+      if (r.success) {
+        closeModal('createModal');
+        loadEmpresas();
+      } else {
+        errEl.textContent = r.error || 'Erro ao cadastrar empresa';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão.';
+    }
+  });
+
+  // ---- ALTERAR SENHA ----
+  function openSenhaModal(codigo, nome) {
+    document.getElementById('senhaForm').reset();
+    document.getElementById('senhaError').textContent = '';
+    document.getElementById('senhaCodigo').value = codigo;
+    document.getElementById('senhaEmpresaLabel').textContent = nome;
+    document.getElementById('senhaModal').classList.remove('hidden');
+  }
+
+  document.getElementById('senhaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const codigo = document.getElementById('senhaCodigo').value;
+    const novaSenha = document.getElementById('senhaNova').value;
+    const errEl = document.getElementById('senhaError');
+    errEl.textContent = '';
+    try {
+      const r = await api('updateEmpresaSenha', { codigo, novaSenha });
+      if (r.success) {
+        closeModal('senhaModal');
+      } else {
+        errEl.textContent = r.error || 'Erro ao alterar senha';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão.';
+    }
+  });
+
+  // ---- ATIVAR / INATIVAR ----
+  async function toggleStatus(codigo, novoStatus) {
+    try {
+      const r = await api('setEmpresaStatus', { codigo, status: novoStatus });
+      if (r.success) loadEmpresas();
+    } catch (err) {
+      alert('Erro de conexão.');
+    }
+  }
+</script>
+</body>
+</html>
