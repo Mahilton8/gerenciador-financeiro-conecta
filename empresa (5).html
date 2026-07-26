@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conecta Financeiro — Painel da Empresa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0F1B33; --navy-2:#182A4D; --gold:#C9A544; --gold-light:#E4C874; --gold-deep:#9C7E2E;
+    --bg:#F6F5F1; --card:#FFFFFF; --ink:#1B2A4A; --muted:#6B7280;
+    --ok:#2F7D5E; --ok-bg:#E6F2EC; --danger:#B3462C; --danger-bg:#F5E6E1; --line:#E7E3D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .hidden{display:none !important;}
+  button{cursor:pointer;border:none;font-family:'Inter',sans-serif;font-weight:600;border-radius:3px;transition:transform .1s, box-shadow .15s;}
+
+  /* LOGIN */
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 20% 20%, rgba(201,165,68,0.10), transparent 45%), linear-gradient(180deg,var(--navy) 0%,#0A1428 100%);padding:24px;}
+  .login-card{width:100%;max-width:380px;background:var(--card);border-radius:4px;padding:40px 36px;box-shadow:0 30px 60px rgba(0,0,0,0.35);border-top:3px solid var(--gold);}
+  .brand-mark{width:44px;height:44px;border-radius:50%;background:conic-gradient(from 220deg, var(--gold-light), var(--gold), var(--gold-deep), var(--gold-light));margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;color:var(--navy);font-size:18px;}
+  .login-card h1{font-size:22px;text-align:center;color:var(--navy);}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;}
+  .login-card .eyebrow{text-align:center;margin-bottom:6px;}
+  .login-card p.sub{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 26px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;letter-spacing:.02em;}
+  input,select{width:100%;padding:11px 13px;border:1px solid #DDD8C8;border-radius:3px;font-family:'Inter',sans-serif;font-size:13.5px;margin-bottom:14px;background:#FCFBF8;}
+  input:focus,select:focus{outline:none;border-color:var(--gold);background:#fff;}
+  .btn-primary{width:100%;padding:13px;background:var(--navy);color:var(--gold-light);font-size:14px;letter-spacing:.03em;}
+  .btn-primary:hover{box-shadow:0 8px 20px rgba(15,27,51,0.25);}
+  .error-msg{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:16px;}
+
+  /* SHELL */
+  header.topbar{background:var(--navy);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gold);flex-wrap:wrap;gap:12px;}
+  header.topbar .title{display:flex;align-items:center;gap:12px;}
+  header.topbar .mark{width:28px;height:28px;border-radius:50%;background:conic-gradient(from 220deg, var(--gold-light), var(--gold), var(--gold-deep), var(--gold-light));}
+  header.topbar h1{font-size:16px;color:#fff;}
+  header.topbar .eyebrow{color:var(--gold-light);font-size:10px;}
+  .logout-btn{background:transparent;color:var(--gold-light);border:1px solid rgba(228,200,116,0.4);padding:8px 16px;font-size:12px;border-radius:3px;}
+  .logout-btn:hover{background:rgba(228,200,116,0.1);}
+
+  nav.tabs{display:flex;gap:4px;background:var(--navy-2);padding:0 28px;overflow-x:auto;}
+  nav.tabs button{background:none;color:rgba(255,255,255,0.6);padding:14px 18px;font-size:13px;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav.tabs button.active{color:#fff;border-bottom-color:var(--gold);}
+
+  main{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
+  .panel-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
+  .panel-head h2{font-size:24px;color:var(--navy);}
+  .btn-gold{background:var(--gold);color:var(--navy);padding:11px 20px;font-size:13px;border-radius:3px;}
+  .btn-gold:hover{background:var(--gold-light);}
+  .card{background:var(--card);border-radius:4px;border:1px solid var(--line);}
+
+  /* FILTROS */
+  .filters-bar{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px 22px;margin-bottom:20px;}
+  .filters-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+  .filters-row .f-field{min-width:140px;flex:1;}
+  .filters-row .f-field label{margin-bottom:4px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  .filters-row select, .filters-row input{margin-bottom:0;}
+  .filters-row .btn-ghost{padding:11px 16px;white-space:nowrap;}
+
+  /* STAT CARDS */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:4px;padding:18px 20px;}
+  .stat-card .eyebrow{margin-bottom:8px;color:var(--muted);}
+  .stat-card .value{font-family:'Fraunces',serif;font-size:23px;color:var(--navy);}
+  .stat-card.entrada{border-left-color:var(--ok);}
+  .stat-card.saida{border-left-color:var(--danger);}
+  .stat-card.entrada .value{color:var(--ok);}
+  .stat-card.saida .value{color:var(--danger);}
+  .stat-card.pend-entrada{border-left-style:dashed;border-left-color:var(--ok);}
+  .stat-card.pend-saida{border-left-style:dashed;border-left-color:var(--danger);}
+  .stat-card.pend-entrada .value{color:var(--ok);}
+  .stat-card.pend-saida .value{color:var(--danger);}
+
+  /* NOVO LANÇAMENTO */
+  .new-launch-card{padding:22px 22px 24px;margin-bottom:22px;}
+  .new-launch-card h3{font-size:16px;color:var(--navy);margin-bottom:16px;}
+  .nl-grid{display:grid;grid-template-columns:110px 1fr 1.3fr 130px 150px auto;gap:12px;align-items:end;}
+  .nl-grid .f-field label{font-size:11px;color:var(--navy);margin-bottom:5px;}
+  .nl-grid select, .nl-grid input{margin-bottom:0;}
+  .nl-modes{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+  .nl-mode-option{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink);}
+  .nl-mode-option input[type=radio]{width:auto;margin:0;}
+  .nl-parcelas-wrap{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .nl-parcelas-wrap label{margin:0;white-space:nowrap;}
+  .nl-parcelas-wrap input{width:90px;margin:0;}
+  .nl-hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  @media (max-width:900px){.nl-grid{grid-template-columns:1fr 1fr;}}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:14px 18px;border-bottom:1px solid var(--line);}
+  tbody td{padding:14px 18px;font-size:13.5px;border-bottom:1px solid #F0EEE6;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FCFBF7;}
+  .valor{font-weight:600;font-variant-numeric:tabular-nums;}
+  .valor.entrada{color:var(--ok);}
+  .valor.saida{color:var(--danger);}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge-pendente{background:#FBF0DC;color:var(--gold-deep);}
+  .badge-baixado{background:var(--ok-bg);color:var(--ok);}
+  .tag-rec{display:inline-block;margin-left:6px;font-size:10px;padding:2px 7px;border-radius:10px;background:#EAEFFA;color:var(--navy-2);font-weight:600;}
+
+  .actions-dropdown{position:relative;display:inline-block;}
+  .actions-btn{background:#F6F5F1;color:var(--navy);padding:7px 14px;font-size:12px;border-radius:3px;border:1px solid var(--line);}
+  .actions-btn:hover{background:#EFEBDE;}
+  .actions-menu{
+    display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);
+    border-radius:4px;box-shadow:0 12px 30px rgba(15,27,51,0.14);min-width:170px;z-index:20;overflow:hidden;
+  }
+  .actions-menu.open{display:block;}
+  .actions-menu button{display:block;width:100%;text-align:left;background:none;padding:10px 14px;font-size:12.5px;font-weight:500;color:var(--ink);}
+  .actions-menu button:hover{background:#F6F5F1;}
+  .actions-menu button.danger{color:var(--danger);}
+  .actions-menu button.ok{color:var(--ok);}
+
+  .empty-state{padding:60px 20px;text-align:center;color:var(--muted);}
+  .empty-state h3{color:var(--navy);font-size:18px;margin-bottom:8px;}
+  .loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+
+  .chart-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+  @media (max-width:800px){.chart-grid{grid-template-columns:1fr;}}
+  .chart-card{padding:22px;}
+  .chart-card h3{font-size:15px;color:var(--navy);margin-bottom:16px;}
+
+  /* MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(15,27,51,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal{background:#fff;border-radius:4px;padding:32px;max-width:440px;width:100%;border-top:3px solid var(--gold);max-height:90vh;overflow-y:auto;}
+  .modal h3{font-size:19px;color:var(--navy);margin-bottom:20px;}
+  .modal-actions{display:flex;gap:10px;margin-top:8px;}
+  .btn-ghost{background:transparent;color:var(--muted);padding:11px 18px;font-size:13px;border:1px solid var(--line);border-radius:3px;}
+  .btn-ghost:hover{background:#F6F5F1;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+
+  @media (max-width:640px){
+    main{padding:22px 14px 60px;}
+    thead{display:none;}
+    tbody tr{display:block;border-bottom:8px solid var(--bg);}
+    tbody td{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+    tbody td::before{content:attr(data-label);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+    .field-row{grid-template-columns:1fr;}
+    .filters-row .f-field{min-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand-mark">C</div>
+    <div class="eyebrow">Grupo Conecta</div>
+    <h1>Gerenciador Financeiro</h1>
+    <p class="sub">Acesso da empresa</p>
+    <form id="loginForm">
+      <label for="empCodigo">Login</label>
+      <input type="text" id="empCodigo" required>
+      <label for="empSenha">Senha</label>
+      <input type="password" id="empSenha" required>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <div class="error-msg" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="hidden">
+  <header class="topbar">
+    <div class="title">
+      <div class="mark"></div>
+      <div>
+        <div class="eyebrow" id="empresaEyebrow">Grupo Conecta</div>
+        <h1 id="empresaNomeHeader">Gerenciador Financeiro</h1>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="lancamentos" onclick="switchTab('lancamentos')">Lançamentos</button>
+    <button class="tab-btn" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" data-tab="fluxo" onclick="switchTab('fluxo')">Fluxo de Caixa</button>
+  </nav>
+
+  <main>
+    <!-- LANÇAMENTOS -->
+    <section id="tab-lancamentos">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Registro de receitas e despesas</div>
+          <h2>Lançamentos</h2>
+        </div>
+      </div>
+
+      <div class="filters-bar">
+        <div class="filters-row">
+          <div class="f-field">
+            <label>Tipo</label>
+            <select id="filtroTipo" onchange="renderAll()">
+              <option value="">Todos</option>
+              <option value="Entrada">Entradas</option>
+              <option value="Saída">Saídas</option>
+            </select>
+          </div>
+          <div class="f-field">
+            <label>Mês</label>
+            <select id="filtroMes" onchange="renderAll()">
+              <option value="">Todos os meses</option>
+            </select>
+          </div>
+          <div class="f-field">
+            <label>Status</label>
+            <select id="filtroStatus" onchange="renderAll()">
+              <option value="">Todos</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Baixado">Baixado</option>
+            </select>
+          </div>
+          <div class="f-field">
+            <label>Categoria</label>
+            <select id="filtroCategoria" onchange="renderAll()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="f-field">
+            <label>De</label>
+            <input type="date" id="filtroDe" onchange="renderAll()">
+          </div>
+          <div class="f-field">
+            <label>Até</label>
+            <input type="date" id="filtroAte" onchange="renderAll()">
+          </div>
+          <button type="button" class="btn-gold" style="white-space:nowrap;" onclick="limparFiltros()">Limpar filtros</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card entrada">
+          <div class="eyebrow">Receitas</div>
+          <div class="value" id="statEntradas">R$ 0,00</div>
+        </div>
+        <div class="stat-card saida">
+          <div class="eyebrow">Despesas</div>
+          <div class="value" id="statSaidas">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="eyebrow">Saldo</div>
+          <div class="value" id="statSaldo">R$ 0,00</div>
+        </div>
+        <div class="stat-card pend-entrada">
+          <div class="eyebrow">Receitas pendentes</div>
+          <div class="value" id="statPendEntradas">R$ 0,00</div>
+        </div>
+        <div class="stat-card pend-saida">
+          <div class="eyebrow">Despesas pendentes</div>
+          <div class="value" id="statPendSaidas">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="card new-launch-card">
+        <h3>Novo lançamento</h3>
+        <form id="lancForm">
+          <input type="hidden" id="lancId">
+          <div class="nl-grid">
+            <div class="f-field">
+              <label for="lancTipo">Tipo</label>
+              <select id="lancTipo" required>
+                <option value="Entrada">Receita</option>
+                <option value="Saída">Despesa</option>
+              </select>
+            </div>
+            <div class="f-field">
+              <label for="lancCategoria">Categoria</label>
+              <select id="lancCategoria" required onchange="onCategoriaSelectChange(this)"></select>
+            </div>
+            <div class="f-field">
+              <label for="lancDescricao">Descrição</label>
+              <input type="text" id="lancDescricao" placeholder="Ex: Salário, Aluguel">
+            </div>
+            <div class="f-field">
+              <label for="lancValor">Valor (R$)</label>
+              <input type="number" id="lancValor" step="0.01" min="0" required>
+            </div>
+            <div class="f-field">
+              <label for="lancData">Data</label>
+              <input type="date" id="lancData" required>
+            </div>
+            <button type="submit" class="btn-gold" style="height:41px;">Adicionar</button>
+          </div>
+
+          <div class="nl-modes">
+            <label class="nl-mode-option"><input type="radio" name="lancModo" value="unico" checked onchange="onModoChange()"> Lançamento único</label>
+            <label class="nl-mode-option"><input type="radio" name="lancModo" value="recorrente" onchange="onModoChange()"> Recorrente (sem data para acabar)</label>
+            <label class="nl-mode-option"><input type="radio" name="lancModo" value="parcelado" onchange="onModoChange()"> Parcelado</label>
+          </div>
+          <div id="parcelasWrap" class="nl-parcelas-wrap hidden">
+            <label for="lancParcelas">Quantidade de parcelas</label>
+            <input type="number" id="lancParcelas" min="2" step="1" placeholder="ex: 12">
+          </div>
+          <div class="nl-hint" id="modoHint"></div>
+          <div class="error-msg" id="lancFormError"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div id="lancTableWrap"><div class="loading">Carregando lançamentos…</div></div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="hidden">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Mês atual</div>
+          <h2 id="dashMesLabel">Visão geral</h2>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="card chart-card">
+          <h3>Entradas x Saídas — últimos 6 meses</h3>
+          <canvas id="chartEvolucao" height="140"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Saídas por categoria (mês atual)</h3>
+          <canvas id="chartCategorias" height="140"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- FLUXO DE CAIXA -->
+    <section id="tab-fluxo" class="hidden">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">Consolidado mensal</div>
+          <h2>Fluxo de Caixa</h2>
+        </div>
+      </div>
+      <div class="filters-bar">
+        <div class="filters-row">
+          <div class="f-field">
+            <label>Categoria</label>
+            <select id="fluxoFiltroCategoria" onchange="renderFluxoCaixa()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="f-field">
+            <label>De</label>
+            <input type="date" id="fluxoDe" onchange="renderFluxoCaixa()">
+          </div>
+          <div class="f-field">
+            <label>Até</label>
+            <input type="date" id="fluxoAte" onchange="renderFluxoCaixa()">
+          </div>
+          <button type="button" class="btn-gold" style="white-space:nowrap;" onclick="limparFiltrosFluxo()">Limpar filtros</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="fluxoTableWrap"><div class="loading">Carregando…</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  // ⚠️ URL do Web App do Apps Script (mesma implantação usada no admin.html)
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbztuSAR7PNTr8pmT_UuyACADr0Jp6mBFFEEm_IBDVOGaJQVAThbqTltAp9TRXPvSGTD/exec';
+
+  let sessaoEmpresa = null; // { codigo, nomeEmpresa }
+  let lancamentos = [];
+  // Fallback usado enquanto a lista real (planilha) ainda não carregou
+  let categorias = ['Vendas', 'Servi\u00E7os', 'Fornecedores', 'Folha', 'Aluguel', 'Impostos', 'Outros'];
+
+  async function api(action, params = {}) {
+    const url = new URL(GAS_URL);
+    url.searchParams.set('action', action);
+    Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+    const res = await fetch(url);
+    return res.json();
+  }
+
+  // ---- LOGIN ----
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const codigo = document.getElementById('empCodigo').value.trim();
+    const senha = document.getElementById('empSenha').value;
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = '';
+    try {
+      const r = await api('empresaLogin', { codigo, senha });
+      if (r.success) {
+        sessaoEmpresa = { codigo: r.codigo, nomeEmpresa: r.nomeEmpresa };
+        sessionStorage.setItem('conecta_empresa_sessao', JSON.stringify(sessaoEmpresa));
+        showApp();
+      } else {
+        errEl.textContent = r.error || 'Login ou senha inválidos';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão. Verifique a URL do backend.';
+    }
+  });
+
+  const savedSessao = sessionStorage.getItem('conecta_empresa_sessao');
+  if (savedSessao) {
+    sessaoEmpresa = JSON.parse(savedSessao);
+    showApp();
+  }
+
+  function showApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('empresaNomeHeader').textContent = sessaoEmpresa.nomeEmpresa;
+    document.getElementById('lancData').value = new Date().toISOString().slice(0, 10);
+    populateCategoriaSelects(); // exibe as categorias padrão de imediato
+    loadCategorias();
+    loadLancamentos();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('conecta_empresa_sessao');
+    sessaoEmpresa = null;
+    document.getElementById('appScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  // ---- TABS ----
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    ['lancamentos', 'dashboard', 'fluxo'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+    });
+    if (tab === 'dashboard') renderDashboard();
+    if (tab === 'fluxo') renderFluxoCaixa();
+  }
+
+  // ---- CATEGORIAS ----
+  async function loadCategorias() {
+    try {
+      const r = await api('listCategorias', { empresa: sessaoEmpresa.codigo });
+      if (r.success && r.data && r.data.length) categorias = r.data;
+    } catch (err) {
+      // mantém o fallback local em caso de falha de conexão
+    }
+    populateCategoriaSelects();
+  }
+
+  function populateCategoriaSelects(categoriaSelecionada) {
+    const lancSel = document.getElementById('lancCategoria');
+    const selecaoAtual = categoriaSelecionada || lancSel.value;
+    lancSel.innerHTML = categorias.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')
+      + `<option value="__nova__">+ Cadastrar nova categoria...</option>`;
+    if (selecaoAtual && categorias.includes(selecaoAtual)) lancSel.value = selecaoAtual;
+
+    const filtroSel = document.getElementById('filtroCategoria');
+    const fluxoSel = document.getElementById('fluxoFiltroCategoria');
+    const valorFiltroAtual = filtroSel.value;
+    const valorFluxoAtual = fluxoSel.value;
+    const opts = '<option value="">Todas</option>' + categorias.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    filtroSel.innerHTML = opts;
+    fluxoSel.innerHTML = opts;
+    if (categorias.includes(valorFiltroAtual)) filtroSel.value = valorFiltroAtual;
+    if (categorias.includes(valorFluxoAtual)) fluxoSel.value = valorFluxoAtual;
+  }
+
+  async function onCategoriaSelectChange(sel) {
+    if (sel.value !== '__nova__') return;
+    const nome = prompt('Nome da nova categoria:');
+    if (!nome || !nome.trim()) {
+      sel.value = categorias[0] || '';
+      return;
+    }
+    const nomeFinal = nome.trim();
+    if (!categorias.includes(nomeFinal)) {
+      try {
+        await api('createCategoria', { empresa: sessaoEmpresa.codigo, categoria: nomeFinal });
+      } catch (err) {
+        alert('Não foi possível salvar a categoria (erro de conexão). Ela será usada apenas neste lançamento.');
+      }
+      categorias.push(nomeFinal);
+    }
+    populateCategoriaSelects(nomeFinal);
+  }
+
+  // ---- MODO DE LANÇAMENTO ----
+  function onModoChange() {
+    const modo = document.querySelector('input[name="lancModo"]:checked').value;
+    document.getElementById('parcelasWrap').classList.toggle('hidden', modo !== 'parcelado');
+    const hint = document.getElementById('modoHint');
+    if (modo === 'recorrente') {
+      hint.textContent = 'Serão gerados lançamentos mensais automaticamente pelos próximos 24 meses a partir da data informada.';
+    } else if (modo === 'parcelado') {
+      hint.textContent = 'O valor informado será repetido em cada parcela, uma por mês, a partir da data informada.';
+    } else {
+      hint.textContent = '';
+    }
+  }
+
+  // ---- CARREGAR LANÇAMENTOS ----
+  async function loadLancamentos() {
+    try {
+      const r = await api('listLancamentos', { empresa: sessaoEmpresa.codigo });
+      lancamentos = r.data || [];
+      popularFiltroMeses();
+      renderAll();
+    } catch (err) {
+      document.getElementById('lancTableWrap').innerHTML = '<div class="loading">Erro ao carregar dados.</div>';
+    }
+  }
+
+  function popularFiltroMeses() {
+    const sel = document.getElementById('filtroMes');
+    const atual = sel.value;
+    const chaves = [...new Set(lancamentos.map(l => (l.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+    sel.innerHTML = '<option value="">Todos os meses</option>' + chaves.map(k => {
+      const [y, m] = k.split('-');
+      const label = new Date(y, m - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      return `<option value="${k}">${label.charAt(0).toUpperCase() + label.slice(1)}</option>`;
+    }).join('');
+    if (chaves.includes(atual)) sel.value = atual;
+  }
+
+  function fmtMoeda(v) {
+    return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function mesAtualKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function labelMesAtual() {
+    const d = new Date();
+    const l = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    return l.charAt(0).toUpperCase() + l.slice(1);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function fmtData(iso) {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return d && m && y ? `${d}/${m}/${y}` : iso;
+  }
+
+  // ---- FILTROS (aba Lançamentos) ----
+  function getFiltrados() {
+    const tipo = document.getElementById('filtroTipo').value;
+    const mes = document.getElementById('filtroMes').value;
+    const status = document.getElementById('filtroStatus').value;
+    const categoria = document.getElementById('filtroCategoria').value;
+    const de = document.getElementById('filtroDe').value;
+    const ate = document.getElementById('filtroAte').value;
+
+    return lancamentos.filter(l => {
+      if (tipo && l.tipo !== tipo) return false;
+      if (mes && (l.data || '').slice(0, 7) !== mes) return false;
+      if (status && l.statusBaixa !== status) return false;
+      if (categoria && l.categoria !== categoria) return false;
+      if (de && l.data < de) return false;
+      if (ate && l.data > ate) return false;
+      return true;
+    });
+  }
+
+  function limparFiltros() {
+    document.getElementById('filtroTipo').value = '';
+    document.getElementById('filtroMes').value = '';
+    document.getElementById('filtroStatus').value = '';
+    document.getElementById('filtroCategoria').value = '';
+    document.getElementById('filtroDe').value = '';
+    document.getElementById('filtroAte').value = '';
+    renderAll();
+  }
+
+  function renderAll() {
+    renderStats();
+    renderLancamentos();
+  }
+
+  // ---- STATS (respeitam os filtros ativos) ----
+  function renderStats() {
+    const filtrados = getFiltrados();
+    const entradas = filtrados.filter(l => l.tipo === 'Entrada' && l.statusBaixa === 'Baixado').reduce((s, l) => s + Number(l.valor), 0);
+    const saidas = filtrados.filter(l => l.tipo === 'Saída' && l.statusBaixa === 'Baixado').reduce((s, l) => s + Number(l.valor), 0);
+    const pendEntradas = filtrados.filter(l => l.tipo === 'Entrada' && l.statusBaixa !== 'Baixado').reduce((s, l) => s + Number(l.valor), 0);
+    const pendSaidas = filtrados.filter(l => l.tipo === 'Saída' && l.statusBaixa !== 'Baixado').reduce((s, l) => s + Number(l.valor), 0);
+
+    document.getElementById('statEntradas').textContent = fmtMoeda(entradas);
+    document.getElementById('statSaidas').textContent = fmtMoeda(saidas);
+    document.getElementById('statSaldo').textContent = fmtMoeda(entradas - saidas);
+    document.getElementById('statPendEntradas').textContent = fmtMoeda(pendEntradas);
+    document.getElementById('statPendSaidas').textContent = fmtMoeda(pendSaidas);
+  }
+
+  // ---- LANÇAMENTOS: LISTA ----
+  function renderLancamentos() {
+    const wrap = document.getElementById('lancTableWrap');
+    let filtrados = getFiltrados().sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+
+    if (!filtrados.length) {
+      wrap.innerHTML = `<div class="empty-state"><h3>Nenhum lançamento encontrado</h3><p>Ajuste os filtros ou cadastre um novo lançamento.</p></div>`;
+      return;
+    }
+
+    const rows = filtrados.map(l => {
+      const baixado = l.statusBaixa === 'Baixado';
+      const tagRec = l.recorrente === 'Sim' ? '<span class="tag-rec">Recorrente</span>' : (l.parcela ? `<span class="tag-rec">${escapeHtml(l.parcela)}</span>` : '');
+      return `<tr>
+        <td data-label="Data">${fmtData(l.data)}</td>
+        <td data-label="Descrição">${escapeHtml(l.descricao || '—')}${tagRec}</td>
+        <td data-label="Tipo">${l.tipo === 'Entrada' ? 'Receita' : 'Despesa'}</td>
+        <td data-label="Categoria">${escapeHtml(l.categoria || '—')}</td>
+        <td data-label="Valor"><span class="valor ${l.tipo === 'Entrada' ? 'entrada' : 'saida'}">${fmtMoeda(l.valor)}</span></td>
+        <td data-label="Status"><span class="badge ${baixado ? 'badge-baixado' : 'badge-pendente'}">${baixado ? 'Pago' : 'Pendente'}</span></td>
+        <td data-label="Ações">
+          <div class="actions-dropdown">
+            <button type="button" class="actions-btn" onclick="toggleActionsMenu(this)">Ações ▾</button>
+            <div class="actions-menu">
+              <button type="button" onclick='openEditModal(${JSON.stringify(l)})'>Editar</button>
+              ${baixado
+                ? `<button type="button" class="ok" onclick="estornar('${l.id}')">Estornar baixa</button>`
+                : `<button type="button" class="ok" onclick="baixar('${l.id}')">Dar baixa</button>`}
+              <button type="button" class="danger" onclick="excluirLancamento('${l.id}')">Excluir</button>
+              ${l.grupoId ? `<button type="button" class="danger" onclick="excluirGrupo('${l.grupoId}','${l.id}')">Excluir esta e futuras</button>` : ''}
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  function toggleActionsMenu(btn) {
+    const menu = btn.nextElementSibling;
+    document.querySelectorAll('.actions-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+    menu.classList.toggle('open');
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.actions-dropdown')) {
+      document.querySelectorAll('.actions-menu.open').forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  // ---- NOVO / EDITAR LANÇAMENTO ----
+  function openEditModal(lanc) {
+    document.getElementById('lancId').value = lanc.id;
+    document.getElementById('lancData').value = lanc.data;
+    document.getElementById('lancTipo').value = lanc.tipo;
+    document.getElementById('lancCategoria').value = lanc.categoria || '';
+    document.getElementById('lancDescricao').value = lanc.descricao || '';
+    document.getElementById('lancValor').value = lanc.valor;
+    document.querySelector('input[name="lancModo"][value="unico"]').checked = true;
+    onModoChange();
+    document.querySelectorAll('input[name="lancModo"]').forEach(r => r.disabled = true);
+    document.getElementById('lancForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  document.getElementById('lancForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('lancId').value;
+    const modo = document.querySelector('input[name="lancModo"]:checked').value;
+    const errEl = document.getElementById('lancFormError');
+    errEl.textContent = '';
+
+    const payload = {
+      empresa: sessaoEmpresa.codigo,
+      data: document.getElementById('lancData').value,
+      tipo: document.getElementById('lancTipo').value,
+      categoria: document.getElementById('lancCategoria').value,
+      descricao: document.getElementById('lancDescricao').value.trim(),
+      valor: document.getElementById('lancValor').value
+    };
+
+    if (!id && modo === 'parcelado') {
+      payload.modo = 'parcelado';
+      payload.parcelas = document.getElementById('lancParcelas').value;
+    } else if (!id && modo === 'recorrente') {
+      payload.modo = 'recorrente';
+    }
+
+    try {
+      const r = id
+        ? await api('updateLancamento', { ...payload, id })
+        : await api('createLancamento', payload);
+      if (r.success) {
+        resetForm();
+        loadLancamentos();
+      } else {
+        errEl.textContent = r.error || 'Erro ao salvar lançamento';
+      }
+    } catch (err) {
+      errEl.textContent = 'Erro de conexão.';
+    }
+  });
+
+  function resetForm() {
+    document.getElementById('lancForm').reset();
+    document.getElementById('lancId').value = '';
+    document.getElementById('lancData').value = new Date().toISOString().slice(0, 10);
+    document.querySelectorAll('input[name="lancModo"]').forEach(r => r.disabled = false);
+    document.querySelector('input[name="lancModo"][value="unico"]').checked = true;
+    onModoChange();
+  }
+
+  // ---- AÇÕES ----
+  async function baixar(id) {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const r = await api('baixarLancamento', { empresa: sessaoEmpresa.codigo, id, dataBaixa: hoje });
+    if (r.success) loadLancamentos();
+  }
+
+  async function estornar(id) {
+    const r = await api('estornarBaixa', { empresa: sessaoEmpresa.codigo, id });
+    if (r.success) loadLancamentos();
+  }
+
+  async function excluirLancamento(id) {
+    if (!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.')) return;
+    const r = await api('deleteLancamento', { empresa: sessaoEmpresa.codigo, id });
+    if (r.success) loadLancamentos();
+  }
+
+  async function excluirGrupo(grupoId, apartirDeId) {
+    if (!confirm('Excluir esta ocorrência e todas as futuras deste lançamento recorrente/parcelado?')) return;
+    const r = await api('deleteGrupo', { empresa: sessaoEmpresa.codigo, grupoId, apartirDeId });
+    if (r.success) loadLancamentos();
+  }
+
+  // ---- DASHBOARD ----
+  let chartEvolucao, chartCategorias;
+
+  function renderDashboard() {
+    document.getElementById('dashMesLabel').textContent = 'Visão geral — ' + labelMesAtual();
+
+    const mesAtual = mesAtualKey();
+    const doMes = lancamentos.filter(l => (l.data || '').slice(0, 7) === mesAtual);
+
+    const meses = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      meses.push({ key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), label: d.toLocaleDateString('pt-BR', { month: 'short' }) });
+    }
+    const entradasSerie = meses.map(m => lancamentos.filter(l => (l.data || '').slice(0, 7) === m.key && l.tipo === 'Entrada').reduce((s, l) => s + Number(l.valor), 0));
+    const saidasSerie = meses.map(m => lancamentos.filter(l => (l.data || '').slice(0, 7) === m.key && l.tipo === 'Saída').reduce((s, l) => s + Number(l.valor), 0));
+
+    const ctx1 = document.getElementById('chartEvolucao').getContext('2d');
+    if (chartEvolucao) chartEvolucao.destroy();
+    chartEvolucao = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: meses.map(m => m.label),
+        datasets: [
+          { label: 'Entradas', data: entradasSerie, backgroundColor: '#2F7D5E', borderRadius: 3 },
+          { label: 'Saídas', data: saidasSerie, backgroundColor: '#B3462C', borderRadius: 3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' }, usePointStyle: true } } },
+        scales: {
+          y: { ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') }, grid: { color: '#F0EEE6' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    const catMap = {};
+    doMes.filter(l => l.tipo === 'Saída').forEach(l => {
+      const cat = l.categoria || 'Outros';
+      catMap[cat] = (catMap[cat] || 0) + Number(l.valor);
+    });
+    const catLabels = Object.keys(catMap);
+    const catValues = Object.values(catMap);
+    const palette = ['#0F1B33', '#C9A544', '#9C7E2E', '#B3462C', '#6B7280', '#182A4D', '#E4C874'];
+
+    const ctx2 = document.getElementById('chartCategorias').getContext('2d');
+    if (chartCategorias) chartCategorias.destroy();
+    chartCategorias = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: catLabels.length ? catLabels : ['Sem saídas no mês'],
+        datasets: [{ data: catValues.length ? catValues : [1], backgroundColor: catLabels.length ? palette : ['#E7E3D8'] }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' }, boxWidth: 12, usePointStyle: true } } }
+      }
+    });
+  }
+
+  // ---- FLUXO DE CAIXA ----
+  function limparFiltrosFluxo() {
+    document.getElementById('fluxoFiltroCategoria').value = '';
+    document.getElementById('fluxoDe').value = '';
+    document.getElementById('fluxoAte').value = '';
+    renderFluxoCaixa();
+  }
+
+  function renderFluxoCaixa() {
+    const wrap = document.getElementById('fluxoTableWrap');
+    const categoria = document.getElementById('fluxoFiltroCategoria').value;
+    const de = document.getElementById('fluxoDe').value;
+    const ate = document.getElementById('fluxoAte').value;
+
+    let base = lancamentos.filter(l => {
+      if (categoria && l.categoria !== categoria) return false;
+      if (de && l.data < de) return false;
+      if (ate && l.data > ate) return false;
+      return true;
+    });
+
+    if (!base.length) {
+      wrap.innerHTML = `<div class="empty-state"><h3>Sem dados para os filtros selecionados</h3><p>O fluxo de caixa é montado a partir dos lançamentos cadastrados.</p></div>`;
+      return;
+    }
+    const porMes = {};
+    base.forEach(l => {
+      const key = (l.data || '').slice(0, 7);
+      if (!key) return;
+      if (!porMes[key]) porMes[key] = { entradas: 0, saidas: 0 };
+      if (l.tipo === 'Entrada') porMes[key].entradas += Number(l.valor);
+      else porMes[key].saidas += Number(l.valor);
+    });
+    const chavesOrdenadas = Object.keys(porMes).sort().reverse();
+    let saldoAcumulado = 0;
+    const acumulados = {};
+    Object.keys(porMes).sort().forEach(k => {
+      saldoAcumulado += porMes[k].entradas - porMes[k].saidas;
+      acumulados[k] = saldoAcumulado;
+    });
+
+    const rows = chavesOrdenadas.map(key => {
+      const [ano, mes] = key.split('-');
+      const label = new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const { entradas, saidas } = porMes[key];
+      const saldoMes = entradas - saidas;
+      return `<tr>
+        <td data-label="Mês" style="text-transform:capitalize;">${label}</td>
+        <td data-label="Entradas"><span class="valor entrada">${fmtMoeda(entradas)}</span></td>
+        <td data-label="Saídas"><span class="valor saida">${fmtMoeda(saidas)}</span></td>
+        <td data-label="Saldo do mês"><span class="valor ${saldoMes >= 0 ? 'entrada' : 'saida'}">${fmtMoeda(saldoMes)}</span></td>
+        <td data-label="Saldo acumulado"><span class="valor ${acumulados[key] >= 0 ? 'entrada' : 'saida'}">${fmtMoeda(acumulados[key])}</span></td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Saldo do mês</th><th>Saldo acumulado</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+</script>
+</body>
+</html>
